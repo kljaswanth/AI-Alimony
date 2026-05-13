@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>AlimonyAI — Find Out What Love Actually Costs</title>
+<meta name="description" content="The most accurate AI-powered alimony calculator. Based on UMDA guidelines & state law. All 50 US states. Built by Jaswanth K L."/>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+/* ===== RESET ===== */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+:root{
+  --cream:#faf7f2;--cream2:#f4ede0;--cream3:#ede0cc;
+  --ink:#1a1208;--ink2:#5a4a2a;--ink3:#8a7a5a;
+  --gold:#b8860b;--gold2:#d4a017;--gold3:#f0c040;
+  --red:#c0392b;--red2:#e74c3c;
+  --border:#ddd0b0;--border2:#c8b890;
+  --r:10px;--rl:14px;
+}
+body{font-family:'DM Sans',sans-serif;background:var(--cream2);color:var(--ink);min-height:100vh;overflow-x:hidden}
+.screen{display:none;min-height:100vh}.screen.active{display:block}
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-track{background:var(--cream2)}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+
+/* ===== NAV ===== */
+.nav{display:flex;align-items:center;justify-content:space-between;padding:14px 32px;background:var(--ink);border-bottom:3px solid var(--gold);position:sticky;top:0;z-index:100}
+.logo{font-family:'Playfair Display',serif;font-size:20px;font-weight:900;color:var(--gold3);letter-spacing:.04em}
+.logo span{color:rgba(255,255,255,.35);font-weight:400;font-style:italic;font-size:12px;margin-left:8px}
+.nav-right{display:flex;align-items:center;gap:10px}
+.nav-user{font-family:'Playfair Display',serif;font-size:13px;color:rgba(184,134,11,.7);font-style:italic}
+.nav-pill{font-size:9px;color:var(--gold);background:rgba(255,255,255,.06);border:.5px solid rgba(184,134,11,.35);padding:3px 10px;border-radius:20px;font-family:'DM Mono',monospace;letter-spacing:.08em}
+.nbtn{background:transparent;border:1px solid rgba(184,134,11,.35);color:var(--gold);font-size:11px;font-family:'DM Sans',sans-serif;padding:6px 14px;border-radius:6px;cursor:pointer;transition:all .2s}
+.nbtn:hover{background:rgba(184,134,11,.12)}
+.nbtn.gold{background:rgba(184,134,11,.15);color:var(--gold3)}
+.back-link{font-size:12px;color:rgba(184,134,11,.55);cursor:pointer;transition:color .2s}
+.back-link:hover{color:var(--gold3)}
+
+/* ===== LANDING ===== */
+.land-hero{background:var(--ink);padding:64px 32px 48px;text-align:center;position:relative;overflow:hidden}
+.land-hero::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 40px,rgba(184,134,11,.025) 40px,rgba(184,134,11,.025) 41px),repeating-linear-gradient(90deg,transparent,transparent 40px,rgba(184,134,11,.025) 40px,rgba(184,134,11,.025) 41px)}
+.land-hero::after{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:700px;height:350px;background:radial-gradient(ellipse,rgba(184,134,11,.1) 0%,transparent 70%);pointer-events:none}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:9px;letter-spacing:.18em;color:rgba(184,134,11,.5);font-family:'DM Mono',monospace;margin-bottom:24px;position:relative}
+.dot-r{width:5px;height:5px;border-radius:50%;background:var(--red2);animation:blink 2s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+.land-h1{font-family:'Playfair Display',serif;font-size:clamp(42px,7vw,74px);font-weight:900;line-height:1.0;letter-spacing:-.02em;margin-bottom:18px;color:#fff;position:relative}
+.land-h1 .gld{color:var(--gold3);font-style:italic}
+.land-h1 .red{color:#ff6b6b}
+.land-sub{font-size:15px;color:rgba(255,255,255,.42);line-height:1.8;max-width:460px;margin:0 auto 32px;position:relative}
+.land-sub strong{color:var(--gold);font-weight:500}
+.cta-row{display:flex;flex-direction:column;align-items:center;gap:8px;margin-bottom:44px;position:relative}
+.btn-cta{background:var(--gold2);color:var(--ink);border:none;border-radius:8px;padding:14px 38px;font-size:15px;font-family:'DM Sans',sans-serif;font-weight:700;cursor:pointer;transition:all .2s;letter-spacing:.02em}
+.btn-cta:hover{background:var(--gold3);transform:translateY(-2px)}
+.cta-note{font-size:11px;color:rgba(255,255,255,.22);font-style:italic}
+.stats-bar{display:grid;grid-template-columns:repeat(4,1fr);background:rgba(255,255,255,.03);border:1px solid rgba(184,134,11,.18);border-radius:8px;overflow:hidden;margin:0 auto;max-width:580px;position:relative}
+.stt{padding:16px 8px;text-align:center;border-right:1px solid rgba(184,134,11,.12)}
+.stt:last-child{border-right:none}
+.stt-n{font-family:'DM Mono',monospace;font-size:18px;font-weight:500;color:var(--gold3)}
+.stt-l{font-size:8px;color:rgba(255,255,255,.28);letter-spacing:.1em;text-transform:uppercase;margin-top:3px}
+.feats{display:grid;grid-template-columns:repeat(3,1fr);border-top:3px solid var(--gold)}
+.feat{padding:28px 24px;border-right:1px solid var(--border);position:relative}
+.feat:last-child{border-right:none}
+.feat:nth-child(1){background:var(--cream)}
+.feat:nth-child(2){background:var(--cream2)}
+.feat:nth-child(3){background:var(--cream)}
+.feat-num{font-family:'Playfair Display',serif;font-size:44px;font-weight:900;color:var(--border2);line-height:1;margin-bottom:12px}
+.feat-tag{display:inline-block;background:var(--red);color:#fff;font-size:8px;font-weight:700;letter-spacing:.1em;padding:2px 10px;border-radius:3px;margin-bottom:10px;text-transform:uppercase}
+.feat h3{font-family:'Playfair Display',serif;font-size:17px;font-weight:700;color:var(--ink);margin-bottom:8px}
+.feat p{font-size:13px;color:var(--ink3);line-height:1.7}
+.land-footer{background:var(--ink);border-top:1px solid rgba(184,134,11,.2);padding:20px 32px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.lf-logo{font-family:'Playfair Display',serif;font-size:16px;color:var(--gold2);font-weight:700}
+.lf-by{font-size:12px;color:rgba(255,255,255,.3)}
+.lf-by strong{color:rgba(255,255,255,.5)}
+.lf-disc{font-size:11px;color:rgba(255,255,255,.18);margin-left:auto}
+
+/* ===== ONBOARDING (name collection) ===== */
+.onboard-bg{background:var(--cream2);min-height:calc(100vh - 55px);display:flex;align-items:center;justify-content:center;padding:32px;border-top:3px solid var(--gold)}
+.onboard-card{background:var(--cream);border:1px solid var(--border);border-radius:var(--rl);padding:36px;width:100%;max-width:440px;box-shadow:0 4px 50px rgba(26,18,8,.1)}
+.ob-logo{font-family:'Playfair Display',serif;font-size:26px;font-weight:900;color:var(--ink);text-align:center;margin-bottom:4px}
+.ob-logo span{color:var(--gold);font-style:italic}
+.ob-decree{text-align:center;font-size:9px;letter-spacing:.12em;color:var(--ink3);font-family:'DM Mono',monospace;margin-bottom:22px;padding-bottom:18px;border-bottom:1px solid var(--border)}
+.ob-h{font-family:'Playfair Display',serif;font-size:21px;font-weight:700;color:var(--ink);margin-bottom:6px;text-align:center}
+.ob-p{font-size:12px;color:var(--ink3);margin-bottom:24px;line-height:1.6;text-align:center}
+.name-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
+.f-lbl{font-size:11px;color:var(--ink2);font-weight:600;margin-bottom:4px;display:block}
+.inp{background:#fff;border:1px solid var(--border);border-radius:6px;padding:10px 12px;color:var(--ink);font-size:13px;font-family:'DM Sans',sans-serif;width:100%;transition:border-color .2s}
+.inp:focus{outline:none;border-color:var(--gold)}
+.inp::placeholder{color:var(--border2)}
+.inp-hint{font-size:10px;color:var(--ink3);margin-top:4px;line-height:1.5}
+.name-err{font-size:11px;color:var(--red);text-align:center;margin:6px 0;display:none}
+.name-err.show{display:block}
+.btn-enter{width:100%;background:var(--ink);color:var(--gold3);border:none;border-radius:8px;padding:13px;font-size:14px;font-weight:700;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .2s;margin-top:8px;letter-spacing:.02em}
+.btn-enter:hover{background:#2d2010}
+.ob-disc{font-size:10px;color:var(--border2);margin-top:14px;line-height:1.5;text-align:center}
+
+/* ===== CALCULATOR ===== */
+.calc-bg{background:var(--cream2);padding:28px 24px 60px;border-top:3px solid var(--gold);min-height:calc(100vh - 55px)}
+.calc-wrap{max-width:660px;margin:0 auto}
+.calc-hdr{background:var(--ink);border-radius:var(--rl);padding:22px 26px;margin-bottom:14px;position:relative;overflow:hidden}
+.calc-hdr::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--red),var(--gold2),var(--red))}
+.calc-hdr h1{font-family:'Playfair Display',serif;font-size:27px;font-weight:900;color:#fff;margin-bottom:5px}
+.calc-hdr h1 em{color:var(--gold3);font-style:italic}
+.calc-hdr p{font-size:12px;color:rgba(255,255,255,.38);line-height:1.6}
+.card{background:var(--cream);border:1px solid var(--border);border-radius:var(--rl);padding:20px;margin-bottom:12px}
+.card-lbl{font-size:9px;letter-spacing:.14em;text-transform:uppercase;font-family:'DM Mono',monospace;color:var(--ink3);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.card-lbl::after{content:'';flex:1;height:1px;background:var(--border)}
+.role-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.role-btn{display:flex;flex-direction:column;align-items:center;padding:14px 8px;border-radius:var(--r);border:1px solid var(--border);background:var(--cream2);cursor:pointer;transition:all .2s;gap:5px}
+.role-btn:hover{border-color:var(--gold);background:var(--cream)}
+.role-btn.act{border-color:var(--gold);background:#fff;box-shadow:0 0 0 3px rgba(184,134,11,.1)}
+.role-ico{font-size:22px}.role-n{font-size:12px;font-weight:600;color:var(--ink)}.role-d{font-size:9px;color:var(--ink3);text-align:center;line-height:1.4}
+.fg{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.f{display:flex;flex-direction:column;gap:5px}
+.f label{font-size:11px;color:var(--ink2);font-weight:600}
+.iw{position:relative}
+.ipfx{position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:13px;color:var(--ink3);pointer-events:none}
+.f input,.f select{background:#fff;border:1px solid var(--border);border-radius:6px;padding:9px 10px;color:var(--ink);font-size:13px;font-family:'DM Sans',sans-serif;width:100%;transition:border-color .2s}
+.iw input{padding-left:22px}
+.f input:focus,.f select:focus{outline:none;border-color:var(--gold)}
+.f select option{background:#fff;color:var(--ink)}
+.btn-calc{width:100%;padding:15px;margin-top:14px;background:var(--red);color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:700;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:8px;letter-spacing:.02em}
+.btn-calc:hover{background:var(--red2);transform:translateY(-1px)}
+
+/* ===== RESULTS ===== */
+.res-bg{background:var(--cream2);padding:24px 24px 60px;border-top:3px solid var(--gold);min-height:calc(100vh - 55px)}
+.res-wrap{max-width:700px;margin:0 auto}
+.res-hero{background:var(--ink);border-radius:var(--rl);padding:30px 26px 24px;margin-bottom:14px;text-align:center;position:relative;overflow:hidden}
+.res-hero::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--red),var(--gold2),var(--red))}
+.res-hero::after{content:'';position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 40px,rgba(184,134,11,.02) 40px,rgba(184,134,11,.02) 41px)}
+.res-greeting{font-size:13px;color:rgba(255,255,255,.38);margin-bottom:10px;position:relative}
+.res-greeting strong{color:var(--gold3);font-style:italic;font-family:'Playfair Display',serif}
+.res-badge{display:inline-block;font-size:8px;font-family:'DM Mono',monospace;letter-spacing:.1em;color:rgba(184,134,11,.55);background:rgba(184,134,11,.07);border:.5px solid rgba(184,134,11,.18);padding:3px 12px;border-radius:20px;margin-bottom:12px;position:relative}
+.res-verdict{font-size:9px;letter-spacing:.14em;text-transform:uppercase;font-family:'DM Mono',monospace;margin-bottom:8px;position:relative}
+.res-verdict.pay{color:#ff6b6b}.res-verdict.rec{color:var(--gold3)}
+.res-amount{font-family:'Playfair Display',serif;font-size:clamp(52px,8vw,72px);font-weight:900;line-height:1;position:relative}
+.res-amount.pay{color:#ff6b6b}.res-amount.rec{color:var(--gold3)}
+.res-mo{font-size:18px;opacity:.32;font-family:'DM Sans',sans-serif;font-weight:300}
+.res-dur{font-size:12px;color:rgba(255,255,255,.3);margin-top:7px;position:relative}
+.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px}
+.met{background:var(--cream);border:1px solid var(--border);border-radius:var(--r);padding:16px;text-align:center}
+.met-v{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--ink)}
+.met-l{font-size:9px;color:var(--ink3);text-transform:uppercase;letter-spacing:.08em;font-family:'DM Mono',monospace;margin-top:3px}
+.met.m-red{border-color:rgba(192,57,43,.22);background:#fff8f7}.met.m-red .met-v{color:var(--red)}
+.met.m-gold{border-color:rgba(184,134,11,.22);background:#fffdf5}.met.m-gold .met-v{color:var(--gold)}
+.bdown{background:var(--cream);border:1px solid var(--border);border-radius:var(--rl);padding:20px;margin-bottom:12px}
+.bd-title{font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink3);font-family:'DM Mono',monospace;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.bd-title::after{content:'';flex:1;height:1px;background:var(--border)}
+.bd-row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px}
+.bd-row:last-child{border-bottom:none}
+.bd-l{color:var(--ink3)}.bd-v{font-family:'DM Mono',monospace;font-weight:500;font-size:11px;color:var(--ink)}
+.bd-v.hot{color:var(--red)}.bd-v.warm{color:var(--gold)}.bd-v.cool{color:#2471a3}
+.quote-card{border-radius:var(--rl);padding:22px;margin-bottom:12px;position:relative;overflow:hidden}
+.quote-card::before{content:'\201C';position:absolute;top:-10px;left:16px;font-size:80px;font-family:'Playfair Display',serif;line-height:1;pointer-events:none}
+.quote-card.sad{background:#fff8f7;border:1px solid rgba(192,57,43,.2)}.quote-card.sad::before{color:rgba(192,57,43,.12)}
+.quote-card.motiv{background:#fffdf5;border:1px solid rgba(184,134,11,.2)}.quote-card.motiv::before{color:rgba(184,134,11,.12)}
+.quote-card.neut{background:var(--cream);border:1px solid var(--border)}.quote-card.neut::before{color:var(--border)}
+.q-src{font-size:9px;letter-spacing:.1em;text-transform:uppercase;font-family:'DM Mono',monospace;margin-bottom:4px}
+.sad .q-src{color:var(--red)}.motiv .q-src{color:var(--gold)}.neut .q-src{color:var(--ink3)}
+.q-name-tag{font-size:11px;font-weight:700;margin-bottom:8px;font-family:'Playfair Display',serif;font-style:italic}
+.sad .q-name-tag{color:var(--red2)}.motiv .q-name-tag{color:var(--gold2)}.neut .q-name-tag{color:var(--ink2)}
+.q-txt{font-family:'Playfair Display',serif;font-size:15px;font-style:italic;line-height:1.75;color:var(--ink);padding-left:6px}
+.actions{display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+.abtn{flex:1;min-width:120px;padding:11px 14px;border-radius:8px;font-size:12px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:5px}
+.abtn:hover{transform:translateY(-1px)}
+.abtn.a1{background:var(--ink);color:var(--gold3);border:none}.abtn.a1:hover{background:#2d2010}
+.abtn.a2{background:#fff;color:var(--ink2);border:1px solid var(--border)}.abtn.a2:hover{border-color:var(--gold);color:var(--gold)}
+.abtn.a3{background:#fff;color:var(--ink2);border:1px solid var(--border)}.abtn.a3:hover{border-color:var(--red);color:var(--red)}
+.legal{font-size:10px;color:var(--border2);text-align:center;line-height:1.6;padding:14px 0;border-top:1px solid var(--border)}
+.byline{text-align:center;font-size:10px;color:var(--border2);padding-top:6px}
+.byline strong{color:var(--ink3);font-family:'Playfair Display',serif;font-style:italic}
+
+/* ===== PDF PREVIEW ===== */
+.pdf-bg{background:rgba(26,18,8,.8);min-height:calc(100vh - 55px);display:flex;align-items:flex-start;justify-content:center;padding:28px 20px 48px}
+.pdf-sheet{background:#fff;width:100%;max-width:580px;border-radius:3px;box-shadow:0 12px 80px rgba(0,0,0,.6);overflow:hidden;font-family:'DM Sans',sans-serif}
+.pdf-top-bar{height:6px;background:linear-gradient(90deg,#c0392b,#b8860b,#c0392b)}
+.pdf-header{background:#1a1208;padding:22px 30px 18px;position:relative;overflow:hidden}
+.pdf-header::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 20px,rgba(184,134,11,.04) 20px,rgba(184,134,11,.04) 21px)}
+.pdf-wm{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;overflow:hidden}
+.pdf-wm span{font-family:'Playfair Display',serif;font-size:70px;font-weight:900;color:rgba(184,134,11,.04);transform:rotate(-20deg);white-space:nowrap;letter-spacing:.1em}
+.pdf-seal{position:absolute;right:26px;top:50%;transform:translateY(-50%);width:54px;height:54px;border-radius:50%;border:2px solid rgba(184,134,11,.35);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:1px}
+.pdf-seal-ico{font-size:20px;line-height:1}
+.pdf-seal-txt{font-size:6px;color:rgba(184,134,11,.55);letter-spacing:.08em;font-family:'DM Mono',monospace}
+.pdf-logo{font-family:'Playfair Display',serif;font-size:22px;font-weight:900;color:#d4a017;letter-spacing:.04em;position:relative}
+.pdf-tagline{font-size:8px;color:rgba(255,255,255,.28);letter-spacing:.1em;font-family:'DM Mono',monospace;margin-top:4px;position:relative}
+.pdf-case-band{background:rgba(184,134,11,.07);border-top:1px solid rgba(184,134,11,.18);border-bottom:1px solid rgba(184,134,11,.18);padding:9px 30px;display:flex;justify-content:space-between;align-items:center}
+.pdf-case-no{font-size:9px;color:rgba(184,134,11,.75);font-family:'DM Mono',monospace;letter-spacing:.08em}
+.pdf-date-txt{font-size:9px;color:rgba(184,134,11,.5);font-family:'DM Mono',monospace}
+.pdf-body{padding:24px 30px}
+.pdf-matter{text-align:center;border:1px solid #e8dfc8;border-radius:6px;padding:16px;margin-bottom:18px;background:#faf7f2}
+.pdf-matter-lbl{font-size:8px;letter-spacing:.14em;color:#8a7a5a;font-family:'DM Mono',monospace;text-transform:uppercase;margin-bottom:4px}
+.pdf-matter-name{font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:#1a1208}
+.pdf-matter-sub{font-size:10px;color:#8a7a5a;margin-top:3px}
+.pdf-vbox{background:#1a1208;border-radius:8px;padding:20px 22px;margin-bottom:16px;text-align:center;position:relative;overflow:hidden}
+.pdf-vbox::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,#c0392b,#d4a017,#c0392b)}
+.pdf-v-lbl{font-size:8px;letter-spacing:.14em;color:rgba(255,255,255,.35);font-family:'DM Mono',monospace;text-transform:uppercase;margin-bottom:6px}
+.pdf-v-amt{font-family:'Playfair Display',serif;font-size:46px;font-weight:900;color:#f0c040;line-height:1}
+.pdf-v-mo{font-size:14px;color:rgba(255,255,255,.28);font-weight:300;font-family:'DM Sans',sans-serif}
+.pdf-v-dur{font-size:10px;color:rgba(255,255,255,.28);margin-top:6px}
+.pdf-mets{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:18px}
+.pdf-met{border-radius:6px;padding:11px;text-align:center;border:1px solid #e8dfc8}
+.pdf-met.r{background:#fff8f7;border-color:rgba(192,57,43,.18)}.pdf-met.r .pdf-mv{color:#c0392b}
+.pdf-met.g{background:#fffdf5;border-color:rgba(184,134,11,.18)}.pdf-met.g .pdf-mv{color:#b8860b}
+.pdf-met.n{background:#faf7f2}.pdf-met.n .pdf-mv{color:#1a1208}
+.pdf-mv{font-family:'Playfair Display',serif;font-size:17px;font-weight:700}
+.pdf-ml{font-size:8px;color:#8a7a5a;text-transform:uppercase;letter-spacing:.07em;font-family:'DM Mono',monospace;margin-top:2px}
+.pdf-sh{display:flex;align-items:center;gap:8px;margin-bottom:10px;margin-top:4px}
+.pdf-sh span{font-size:8px;letter-spacing:.14em;color:#8a7a5a;text-transform:uppercase;font-family:'DM Mono',monospace;white-space:nowrap}
+.pdf-sh::after{content:'';flex:1;height:1px;background:#e8dfc8}
+.pdf-tbl{width:100%;border-collapse:collapse;margin-bottom:18px}
+.pdf-tbl tr:nth-child(even){background:#faf7f2}
+.pdf-tbl td{padding:6px 8px;font-size:10px;border-bottom:1px solid #f0e8d4;color:#1a1208}
+.pdf-tbl td:first-child{color:#8a7a5a;width:50%}
+.pdf-tbl td:last-child{font-family:'DM Mono',monospace;font-weight:500;font-size:9px;text-align:right}
+.pdf-tbl tr.hl td{background:#fff8f7}.pdf-tbl tr.hl td:last-child{color:#c0392b}
+.pdf-tbl tr.hl2 td{background:#fffdf5}.pdf-tbl tr.hl2 td:last-child{color:#b8860b}
+.pdf-qt{border-radius:6px;padding:14px 16px;margin-bottom:6px}
+.pdf-qt.sad{background:#fff8f7;border-left:3px solid #c0392b}
+.pdf-qt.motiv{background:#fffdf5;border-left:3px solid #b8860b}
+.pdf-qt.neut{background:#faf7f2;border-left:3px solid #8a7a5a}
+.pdf-qs{font-size:8px;letter-spacing:.1em;text-transform:uppercase;font-family:'DM Mono',monospace;margin-bottom:3px}
+.pdf-qt.sad .pdf-qs{color:#c0392b}.pdf-qt.motiv .pdf-qs{color:#b8860b}.pdf-qt.neut .pdf-qs{color:#8a7a5a}
+.pdf-qn{font-size:10px;font-style:italic;font-family:'Playfair Display',serif;margin-bottom:5px;font-weight:700}
+.pdf-qt.sad .pdf-qn{color:#e74c3c}.pdf-qt.motiv .pdf-qn{color:#d4a017}.pdf-qt.neut .pdf-qn{color:#5a4a2a}
+.pdf-qtxt{font-family:'Playfair Display',serif;font-size:11px;font-style:italic;line-height:1.7;color:#2a1e08}
+.pdf-disc{background:#faf7f2;border-top:1px solid #e8dfc8;padding:12px 30px;font-size:8px;color:#b8a880;line-height:1.6}
+.pdf-footer{background:#1a1208;padding:12px 30px;display:flex;justify-content:space-between;align-items:center}
+.pdf-fl{font-family:'Playfair Display',serif;font-size:13px;color:#d4a017;font-weight:700}
+.pdf-fb{font-size:8px;color:rgba(255,255,255,.22);font-family:'DM Mono',monospace}
+.pdf-fp{font-size:8px;color:rgba(184,134,11,.35);font-family:'DM Mono',monospace}
+
+/* ===== RESPONSIVE ===== */
+@media(max-width:640px){
+  .nav{padding:12px 16px}
+  .land-hero{padding:40px 16px 32px}
+  .feats{grid-template-columns:1fr}
+  .feat{border-right:none;border-bottom:1px solid var(--border)}
+  .feat:last-child{border-bottom:none}
+  .fg{grid-template-columns:1fr}
+  .role-grid{grid-template-columns:1fr}
+  .metrics{grid-template-columns:1fr}
+  .actions{flex-direction:column}
+  .stats-bar{grid-template-columns:repeat(2,1fr)}
+  .pdf-mets{grid-template-columns:1fr}
+  .calc-bg,.res-bg{padding:16px 14px 40px}
+  .pdf-bg{padding:16px 10px 40px}
+  .name-row{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- ============================
+     SCREEN 1 — LANDING
+============================= -->
+<div id="s-land" class="screen active">
+  <nav class="nav">
+    <div class="logo">AlimonyAI <span>by Jaswanth K L</span></div>
+    <div class="nav-right">
+      <span class="nav-pill">US LAW BASED</span>
+      <button class="nbtn" onclick="go('s-onboard')">Get Started</button>
+    </div>
+  </nav>
+
+  <section class="land-hero">
+    <div class="eyebrow"><span class="dot-r"></span>COURT-ACCURATE · ALL 50 STATES · FREE TO USE</div>
+    <h1 class="land-h1">Find out what<br/><span class="gld">love</span> <span class="red">actually</span> costs.</h1>
+    <p class="land-sub">The most accurate AI-powered alimony calculator on the internet. Based on UMDA guidelines & state-specific law. Built by <strong>Jaswanth K L</strong>.</p>
+    <div class="cta-row">
+      <button class="btn-cta" onclick="go('s-onboard')">Calculate My Settlement →</button>
+      <span class="cta-note">Takes 90 seconds. Free. Might change everything.</span>
+    </div>
+    <div class="stats-bar">
+      <div class="stt"><div class="stt-n">50</div><div class="stt-l">US States</div></div>
+      <div class="stt"><div class="stt-n">12</div><div class="stt-l">Legal Factors</div></div>
+      <div class="stt"><div class="stt-n">UMDA</div><div class="stt-l">Guidelines</div></div>
+      <div class="stt"><div class="stt-n">PDF</div><div class="stt-l">Export</div></div>
+    </div>
+  </section>
+
+  <section class="feats">
+    <div class="feat">
+      <div class="feat-num">01</div>
+      <h3>Legally Grounded</h3>
+      <p>Every calculation follows the Uniform Marriage & Divorce Act — the exact framework judges use across all 50 states.</p>
+    </div>
+    <div class="feat">
+      <div class="feat-tag">Most Used</div>
+      <div class="feat-num">02</div>
+      <h3>Brutally Precise</h3>
+      <p>Income gap, career sacrifice, fault grounds, health, employability, and cost-of-living adjustments. Nothing left out.</p>
+    </div>
+    <div class="feat">
+      <div class="feat-num">03</div>
+      <h3>Fancy PDF Report</h3>
+      <p>A beautifully designed legal document — gold accents, official case numbers, personalized quotes with your name on it.</p>
+    </div>
+  </section>
+
+  <footer class="land-footer">
+    <span class="lf-logo">AlimonyAI</span>
+    <span class="lf-by">Built by <strong>Jaswanth K L</strong></span>
+    <span class="lf-disc">For informational & entertainment purposes only. Not legal advice.</span>
+  </footer>
+</div>
+
+<!-- ============================
+     SCREEN 2 — ONBOARDING (name)
+============================= -->
+<div id="s-onboard" class="screen">
+  <nav class="nav">
+    <div class="logo">AlimonyAI</div>
+    <span class="back-link" onclick="go('s-land')">← Back to Home</span>
+  </nav>
+  <div class="onboard-bg">
+    <div class="onboard-card">
+      <div class="ob-logo">Alimony<span>AI</span></div>
+      <div class="ob-decree">IN THE MATTER OF YOUR FINANCIAL FUTURE</div>
+      <div class="ob-h">Who shall the court address?</div>
+      <p class="ob-p">Enter your name so we can personalize your report and write your quotes just for you.</p>
+      <div class="name-row">
+        <div>
+          <span class="f-lbl">First name *</span>
+          <input class="inp" id="a-first" type="text" placeholder="e.g. Alex"/>
+        </div>
+        <div>
+          <span class="f-lbl">Last name *</span>
+          <input class="inp" id="a-last" type="text" placeholder="e.g. Johnson"/>
+        </div>
+      </div>
+      <span class="f-lbl">Your role in this case</span>
+      <select class="inp" id="a-role" style="margin-top:4px;margin-bottom:4px">
+        <option value="M">He / Him — Higher earner / potential payer</option>
+        <option value="F">She / Her — Lower earner / potential recipient</option>
+        <option value="N">Other / Neutral perspective</option>
+      </select>
+      <p class="inp-hint">This personalizes the tone of your quotes and report language.</p>
+      <div id="name-err" class="name-err">Please enter your first and last name to continue.</div>
+      <button class="btn-enter" onclick="startCalc()">Enter the Courtroom →</button>
+      <p class="ob-disc">No account needed. No data stored. Your information stays in your browser only. Not legal advice — for informational & entertainment purposes. Jaswanth K L is not responsible for your ex.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ============================
+     SCREEN 3 — CALCULATOR
+============================= -->
+<div id="s-calc" class="screen">
+  <nav class="nav">
+    <div class="logo">AlimonyAI</div>
+    <div class="nav-right">
+      <span id="nav-uname" class="nav-user"></span>
+      <button class="nbtn" onclick="go('s-land')">Home</button>
+    </div>
+  </nav>
+  <div class="calc-bg">
+    <div class="calc-wrap">
+      <div class="calc-hdr">
+        <h1>The court calls <em id="ch-name">you</em> to the stand.</h1>
+        <p>Answer honestly. We apply the same 12 factors US courts use. No sugarcoating, no mercy.</p>
+      </div>
+
+      <div class="card">
+        <div class="card-lbl">Step 1 — The financial autopsy</div>
+        <div class="fg">
+          <div class="f">
+            <label>Your gross annual income</label>
+            <div class="iw"><span class="ipfx">$</span><input type="number" id="c-i1" value="85000" min="0"/></div>
+          </div>
+          <div class="f">
+            <label>Spouse gross annual income</label>
+            <div class="iw"><span class="ipfx">$</span><input type="number" id="c-i2" value="45000" min="0"/></div>
+          </div>
+          <div class="f">
+            <label>Years married</label>
+            <input type="number" id="c-yrs" value="8" min="0" max="70"/>
+          </div>
+          <div class="f">
+            <label>State of filing</label>
+            <select id="c-state">
+              <option value="CA">California</option><option value="TX">Texas</option><option value="NY">New York</option>
+              <option value="FL">Florida</option><option value="IL">Illinois</option><option value="PA">Pennsylvania</option>
+              <option value="OH">Ohio</option><option value="GA">Georgia</option><option value="NC">North Carolina</option>
+              <option value="MI">Michigan</option><option value="NJ">New Jersey</option><option value="VA">Virginia</option>
+              <option value="WA">Washington</option><option value="AZ">Arizona</option><option value="MA">Massachusetts</option>
+              <option value="TN">Tennessee</option><option value="IN">Indiana</option><option value="MO">Missouri</option>
+              <option value="MD">Maryland</option><option value="WI">Wisconsin</option><option value="CO">Colorado</option>
+              <option value="MN">Minnesota</option><option value="SC">South Carolina</option><option value="AL">Alabama</option>
+              <option value="LA">Louisiana</option><option value="KY">Kentucky</option><option value="OR">Oregon</option>
+              <option value="OK">Oklahoma</option><option value="CT">Connecticut</option><option value="UT">Utah</option>
+              <option value="NV">Nevada</option><option value="AR">Arkansas</option><option value="MS">Mississippi</option>
+              <option value="KS">Kansas</option><option value="NM">New Mexico</option><option value="NE">Nebraska</option>
+              <option value="WV">West Virginia</option><option value="ID">Idaho</option><option value="HI">Hawaii</option>
+              <option value="NH">New Hampshire</option><option value="ME">Maine</option><option value="MT">Montana</option>
+              <option value="RI">Rhode Island</option><option value="DE">Delaware</option><option value="SD">South Dakota</option>
+              <option value="ND">North Dakota</option><option value="AK">Alaska</option><option value="VT">Vermont</option>
+              <option value="WY">Wyoming</option>
+            </select>
+          </div>
+          <div class="f">
+            <label>Marital standard of living</label>
+            <select id="c-liv">
+              <option value="modest">Modest (under $60k/yr)</option>
+              <option value="middle" selected>Middle class ($60k–$150k)</option>
+              <option value="upper">Upper middle ($150k–$300k)</option>
+              <option value="affluent">Affluent ($300k+/yr)</option>
+            </select>
+          </div>
+          <div class="f">
+            <label>Dependent children</label>
+            <select id="c-kids">
+              <option value="0">None</option><option value="1">1 child</option>
+              <option value="2">2 children</option><option value="3">3 children</option>
+              <option value="4">4+ children</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-lbl">Step 2 — Legal & circumstantial factors</div>
+        <div class="fg">
+          <div class="f">
+            <label>Career sacrifice by lower earner</label>
+            <select id="c-sac">
+              <option value="none">No career sacrifice</option>
+              <option value="partial">Reduced career for family</option>
+              <option value="full">Gave up career entirely</option>
+            </select>
+          </div>
+          <div class="f">
+            <label>Grounds for divorce</label>
+            <select id="c-flt">
+              <option value="none">No-fault divorce</option>
+              <option value="adultery">Adultery</option>
+              <option value="abandonment">Abandonment</option>
+              <option value="abuse">Abuse / cruelty</option>
+            </select>
+          </div>
+          <div class="f">
+            <label>Health / disability (lower earner)</label>
+            <select id="c-hlth">
+              <option value="none">Both in good health</option>
+              <option value="minor">Minor health issues</option>
+              <option value="major">Major disability</option>
+            </select>
+          </div>
+          <div class="f">
+            <label>Recipient's employability</label>
+            <select id="c-emp">
+              <option value="high">Highly employable</option>
+              <option value="med" selected>Moderately employable</option>
+              <option value="low">Low employability</option>
+              <option value="none">Cannot work at all</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <button class="btn-calc" onclick="calc()">⚖️ Render My Verdict →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================
+     SCREEN 4 — RESULTS
+============================= -->
+<div id="s-res" class="screen">
+  <nav class="nav">
+    <div class="logo">AlimonyAI</div>
+    <div class="nav-right">
+      <span id="res-nav-name" class="nav-user"></span>
+      <button class="nbtn" onclick="go('s-calc')">Recalculate</button>
+      <button class="nbtn" onclick="go('s-land')">Home</button>
+    </div>
+  </nav>
+  <div class="res-bg">
+    <div class="res-wrap" id="res-inner"></div>
+  </div>
+</div>
+
+<!-- ============================
+     SCREEN 5 — PDF PREVIEW
+============================= -->
+<div id="s-pdf" class="screen">
+  <nav class="nav">
+    <div class="logo">AlimonyAI</div>
+    <div class="nav-right">
+      <button class="nbtn" onclick="go('s-res')">← Back to Results</button>
+      <button class="nbtn gold" id="dl-btn" onclick="dlPDF()">⬇ Download PDF</button>
+    </div>
+  </nav>
+  <div class="pdf-bg">
+    <div class="pdf-sheet" id="pdf-sheet">
+      <div class="pdf-top-bar"></div>
+      <div class="pdf-header">
+        <div class="pdf-wm"><span>ALIMONYAI</span></div>
+        <div class="pdf-seal"><div class="pdf-seal-ico">⚖️</div><div class="pdf-seal-txt">OFFICIAL</div></div>
+        <div class="pdf-logo">AlimonyAI</div>
+        <div class="pdf-tagline">OFFICIAL SETTLEMENT ESTIMATE · BUILT BY JASWANTH K L</div>
+      </div>
+      <div class="pdf-case-band">
+        <span class="pdf-case-no" id="pv-case">CASE NO. AAI-2025-0001</span>
+        <span class="pdf-date-txt" id="pv-date">DATE: —</span>
+      </div>
+      <div class="pdf-body">
+        <div class="pdf-matter">
+          <div class="pdf-matter-lbl">In the matter of</div>
+          <div class="pdf-matter-name" id="pv-name">—</div>
+          <div class="pdf-matter-sub" id="pv-sub">—</div>
+        </div>
+        <div class="pdf-vbox">
+          <div class="pdf-v-lbl" id="pv-vlbl">ESTIMATED MONTHLY OBLIGATION</div>
+          <div class="pdf-v-amt" id="pv-amt">$—<span class="pdf-v-mo">/mo</span></div>
+          <div class="pdf-v-dur" id="pv-dur">—</div>
+        </div>
+        <div class="pdf-mets">
+          <div class="pdf-met r"><div class="pdf-mv" id="pv-annual">$—</div><div class="pdf-ml">Annual</div></div>
+          <div class="pdf-met g"><div class="pdf-mv" id="pv-dur2">— yrs</div><div class="pdf-ml">Duration</div></div>
+          <div class="pdf-met n"><div class="pdf-mv" id="pv-total">$—</div><div class="pdf-ml">Total Payout</div></div>
+        </div>
+        <div class="pdf-sh"><span>Calculation Breakdown — Judicial Factors Applied</span></div>
+        <table class="pdf-tbl" id="pv-tbl"></table>
+        <div class="pdf-sh"><span>Personal Note</span></div>
+        <div class="pdf-qt" id="pv-qt">
+          <div class="pdf-qs" id="pv-qs"></div>
+          <div class="pdf-qn" id="pv-qn"></div>
+          <div class="pdf-qtxt" id="pv-qtxt"></div>
+        </div>
+      </div>
+      <div class="pdf-disc" id="pv-disc"></div>
+      <div class="pdf-footer">
+        <div class="pdf-fl">AlimonyAI</div>
+        <div class="pdf-fb" id="pv-fb">BUILT BY JASWANTH K L</div>
+        <div class="pdf-fp">PAGE 1 OF 1</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== STATE =====
+let role='M', lastR={}, uName={first:'',last:'',full:''};
+
+// ===== DATA =====
+const SN={CA:'California',TX:'Texas',NY:'New York',FL:'Florida',IL:'Illinois',PA:'Pennsylvania',OH:'Ohio',GA:'Georgia',NC:'North Carolina',MI:'Michigan',NJ:'New Jersey',VA:'Virginia',WA:'Washington',AZ:'Arizona',MA:'Massachusetts',TN:'Tennessee',IN:'Indiana',MO:'Missouri',MD:'Maryland',WI:'Wisconsin',CO:'Colorado',MN:'Minnesota',SC:'South Carolina',AL:'Alabama',LA:'Louisiana',KY:'Kentucky',OR:'Oregon',OK:'Oklahoma',CT:'Connecticut',UT:'Utah',NV:'Nevada',AR:'Arkansas',MS:'Mississippi',KS:'Kansas',NM:'New Mexico',NE:'Nebraska',WV:'West Virginia',ID:'Idaho',HI:'Hawaii',NH:'New Hampshire',ME:'Maine',MT:'Montana',RI:'Rhode Island',DE:'Delaware',SD:'South Dakota',ND:'North Dakota',AK:'Alaska',VT:'Vermont',WY:'Wyoming'};
+const SM={CA:1.15,NY:1.12,NJ:1.10,MA:1.08,WA:1.07,CT:1.06,HI:1.10,IL:1.04,MD:1.05,CO:1.03,OR:1.02,MN:1.01,VA:1.00,TX:0.94,FL:0.95,AZ:0.96,GA:0.97,NC:0.96,TN:0.92,MS:0.90,AR:0.91,AL:0.92,OK:0.93,KY:0.94,WV:0.91,SD:0.93,ND:0.94,WY:0.93,MT:0.94,ID:0.95,NV:0.97,NM:0.94,NE:0.96,KS:0.95,MO:0.95,WI:0.97,IN:0.95,OH:0.96,MI:0.96,PA:0.98,SC:0.94,LA:0.93,UT:0.95,ME:0.96,NH:1.02,VT:1.01,RI:1.03,DE:1.01,AK:1.05};
+
+const SQ=[
+  {s:"The court addresses {NAME} directly",t:"The numbers don't lie, {NAME}. She held down the fort while you climbed the ladder. The law calls that a measurable contribution. Your bank account is about to agree."},
+  {s:"A word from the bench, {NAME}",t:"The court has seen a thousand {NAME}s walk through that door convinced the math would be different for them. It wasn't. It isn't. Here is your number."},
+  {s:"Unofficial judicial memo — for {NAME}",t:"Dear {NAME}, the gym membership, the side hustle, the 'potential' — none of it is a line item. Income differential is. And yours just became her monthly deposit."},
+  {s:"What the gavel said when {NAME} walked in",t:"{NAME}, you thought partnership meant equal. The divorce court agrees — and just settled what equal actually looks like on a bank statement."}
+];
+const MQ=[
+  {s:"The court recognizes {NAME}",t:"{NAME}, you didn't lose years — you invested them. This calculator just printed your return on investment. Cash it, deposit it, build something extraordinary."},
+  {s:"A message from the law to {NAME}",t:"The legal system sees what your friends always knew, {NAME}: your sacrifices were real, your contributions were documented, and so is this check."},
+  {s:"For {NAME}'s next chapter",t:"{NAME}, whatever you put on hold — the degree, the career, the dream — this is your runway. Every dollar of it is yours to use for takeoff."},
+  {s:"Economic justice, delivered to {NAME}",t:"Alimony is not charity, {NAME}. It is economic recognition of labor the market forgot to compensate you for. You earned this. Now build."}
+];
+const NQ=[
+  {s:"The court presents {NAME}'s estimate",t:"{NAME}, marriage creates economic interdependence. Divorce unwinds it — with interest. This estimate reflects the actual math, not the emotional math."},
+  {s:"From the bench, to {NAME}",t:"Courts balance two futures, {NAME}: the standard of living established during marriage, and each party's path to self-sufficiency. That balance is what you are seeing."}
+];
+
+// ===== HELPERS =====
+const go  = id => { document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active')); document.getElementById(id)?.classList.add('active'); window.scrollTo(0,0); };
+const gv  = id => parseFloat(document.getElementById(id)?.value)||0;
+const gs  = id => document.getElementById(id)?.value||'';
+const fmt = n  => '$'+Math.round(n).toLocaleString();
+const fmtK= n  => { const v=Math.round(n); return v>=1e6?'$'+(v/1e6).toFixed(1)+'M':v>=1000?'$'+(v/1000).toFixed(0)+'k':'$'+v; };
+const inj = (s,n) => s.replace(/{NAME}/g,n);
+const rnd = a => a[Math.floor(Math.random()*a.length)];
+
+// ===== ONBOARDING =====
+function startCalc() {
+  const first=(document.getElementById('a-first')?.value||'').trim();
+  const last =(document.getElementById('a-last')?.value||'').trim();
+  const err  = document.getElementById('name-err');
+  if(!first||!last){ err.classList.add('show'); return; }
+  err.classList.remove('show');
+  role = document.getElementById('a-role')?.value || 'M';
+  uName = {first, last, full: first+' '+last};
+  document.getElementById('nav-uname').textContent = first+' '+last;
+  document.getElementById('res-nav-name').textContent = first+' '+last;
+  const cn = document.getElementById('ch-name'); if(cn) cn.textContent = first;
+  go('s-calc');
+}
+
+// ===== CALCULATION ENGINE =====
+function calc() {
+  const i1=gv('c-i1'), i2=gv('c-i2'), yrs=gv('c-yrs');
+  const state=gs('c-state'), liv=gs('c-liv'), kids=parseInt(gs('c-kids'))||0;
+  const sac=gs('c-sac'), flt=gs('c-flt'), hlth=gs('c-hlth'), emp=gs('c-emp');
+  const hi=Math.max(i1,i2), diff=hi-Math.min(i1,i2);
+  if(diff<=0){ alert('Both incomes match — no alimony warranted, '+(uName.first||'friend')+'. You married your financial equal. Congrats.'); return; }
+
+  // UMDA base rate by duration
+  let br = yrs<3?.15:yrs<5?.20:yrs<10?.28:yrs<15?.33:yrs<20?.37:.40;
+  let mo = (diff*br)/12;
+  mo *= {modest:.85,middle:1,upper:1.12,affluent:1.22}[liv]||1;
+  mo *= {none:1,partial:1.12,full:1.25}[sac]||1;
+  mo *= {none:1,adultery:1.15,abandonment:1.10,abuse:1.20}[flt]||1;
+  mo *= {none:1,minor:1.08,major:1.22}[hlth]||1;
+  mo *= {high:.80,med:1,low:1.15,none:1.30}[emp]||1;
+  mo *= [1,1.05,1.10,1.15,1.20][Math.min(kids,4)];
+  const sm=SM[state]||1; mo*=sm; mo=Math.round(mo);
+
+  // Duration
+  let dur = yrs<5?Math.ceil(yrs*.5):yrs<10?Math.ceil(yrs*.6):yrs<20?Math.ceil(yrs*.7):yrs;
+  dur = Math.ceil(dur*({high:.7,med:1,low:1.3,none:1.6}[emp]||1));
+  dur = Math.ceil(dur*({none:1,minor:1.1,major:1.35}[hlth]||1));
+  if(flt!=='none') dur=Math.ceil(dur*1.1);
+
+  lastR = {i1,i2,yrs,state,liv,kids,sac,flt,hlth,emp,mo,annual:mo*12,dur,total:mo*12*dur,isPay:i1>=i2,diff,sm,br,role};
+  renderRes(lastR);
+  go('s-res');
+}
+
+// ===== RENDER RESULTS =====
+function renderRes(r) {
+  const sn=SN[r.state]||r.state;
+  const slbl=r.sm>1.04?'High cost-of-living':r.sm<0.96?'Lower cost-of-living':'Average cost-of-living';
+  const qPool=r.role==='M'?SQ:r.role==='F'?MQ:NQ;
+  const q=rnd(qPool);
+  const qc=r.role==='M'?'sad':r.role==='F'?'motiv':'neut';
+  const sacL={none:'None',partial:'Partial (+12%)',full:'Full sacrifice (+25%)'};
+  const fltL={none:'No-fault',adultery:'Adultery (+15%)',abandonment:'Abandonment (+10%)',abuse:'Abuse (+20%)'};
+  const hlthL={none:'Both healthy',minor:'Minor issues (+8%)',major:'Major disability (+22%)'};
+  const empL={high:'High (−20%)',med:'Moderate',low:'Low (+15%)',none:'Cannot work (+30%)'};
+  const livL={modest:'Modest (−15%)',middle:'Middle class',upper:'Upper middle (+12%)',affluent:'Affluent (+22%)'};
+  const smS=(r.sm>=1?'+':'')+((r.sm-1)*100).toFixed(0)+'%';
+  const fn=uName.first||'you', fullN=uName.full||'the petitioner';
+
+  document.getElementById('res-inner').innerHTML=`
+    <div class="res-hero">
+      <div class="res-greeting">The court has reached a verdict for <strong>${fullN}</strong></div>
+      <div class="res-badge">${sn} · ${slbl} · ${r.yrs} years of marriage</div>
+      <div class="res-verdict ${r.isPay?'pay':'rec'}">${r.isPay?'ESTIMATED MONTHLY OBLIGATION':'ESTIMATED MONTHLY ENTITLEMENT'}</div>
+      <div class="res-amount ${r.isPay?'pay':'rec'}">${fmt(r.mo)}<span class="res-mo">/mo</span></div>
+      <div class="res-dur">${r.dur}-year estimated duration · ${sn} courts</div>
+    </div>
+    <div class="metrics">
+      <div class="met m-red"><div class="met-v">${fmt(r.annual)}</div><div class="met-l">Annual</div></div>
+      <div class="met m-gold"><div class="met-v">${r.dur} yrs</div><div class="met-l">Duration</div></div>
+      <div class="met"><div class="met-v">${fmtK(r.total)}</div><div class="met-l">Total Payout</div></div>
+    </div>
+    <div class="bdown">
+      <div class="bd-title">Calculation breakdown — judicial factors applied</div>
+      <div class="bd-row"><span class="bd-l">Income differential</span><span class="bd-v warm">${fmt(r.diff)}/yr</span></div>
+      <div class="bd-row"><span class="bd-l">Marriage duration</span><span class="bd-v">${r.yrs} years · ${(r.br*100).toFixed(0)}% base rate</span></div>
+      <div class="bd-row"><span class="bd-l">Standard of living</span><span class="bd-v">${livL[r.liv]}</span></div>
+      <div class="bd-row"><span class="bd-l">Career sacrifice</span><span class="bd-v ${r.sac!=='none'?'hot':''}">${sacL[r.sac]}</span></div>
+      <div class="bd-row"><span class="bd-l">Fault grounds</span><span class="bd-v ${r.flt!=='none'?'hot':''}">${fltL[r.flt]}</span></div>
+      <div class="bd-row"><span class="bd-l">Health / disability</span><span class="bd-v ${r.hlth!=='none'?'warm':''}">${hlthL[r.hlth]}</span></div>
+      <div class="bd-row"><span class="bd-l">Recipient employability</span><span class="bd-v">${empL[r.emp]}</span></div>
+      <div class="bd-row"><span class="bd-l">Dependent children</span><span class="bd-v">${r.kids===0?'None':r.kids+' child'+(r.kids>1?'ren':'')+' (+'+r.kids*5+'%)'}</span></div>
+      <div class="bd-row"><span class="bd-l">State modifier (${r.state})</span><span class="bd-v ${r.sm>1?'hot':'cool'}">${smS} · ${sn}</span></div>
+    </div>
+    <div class="quote-card ${qc}">
+      <div class="q-src">${inj(q.s,fullN)}</div>
+      <div class="q-name-tag">A personal note for ${fn}</div>
+      <div class="q-txt">${inj(q.t,fn)}</div>
+    </div>
+    <div class="actions">
+      <button class="abtn a1" onclick="previewPDF()">✦ Preview &amp; Download PDF</button>
+      <button class="abtn a2" onclick="shareLinkedIn()">Share on LinkedIn</button>
+      <button class="abtn a3" onclick="copyLink()">Copy Link</button>
+    </div>
+    <div class="legal">Based on UMDA & state-specific statutes. Not legal advice. Consult a family law attorney in ${sn}.</div>
+    <div class="byline">Built by <strong>Jaswanth K L</strong> · AlimonyAI · For informational & entertainment purposes only</div>`;
+}
+
+// ===== PDF PREVIEW =====
+function previewPDF() {
+  const r=lastR; if(!r.mo) return;
+  const sn=SN[r.state]||r.state;
+  const fn=uName.first||'', fullN=uName.full||'Petitioner';
+  const sacL={none:'None',partial:'Partial (+12%)',full:'Full (+25%)'};
+  const fltL={none:'No-fault',adultery:'Adultery (+15%)',abandonment:'Abandonment (+10%)',abuse:'Abuse (+20%)'};
+  const hlthL={none:'Healthy',minor:'Minor (+8%)',major:'Disability (+22%)'};
+  const empL={high:'High (−20%)',med:'Moderate',low:'Low (+15%)',none:'Cannot work (+30%)'};
+  const livL={modest:'Modest (−15%)',middle:'Middle class',upper:'Upper middle (+12%)',affluent:'Affluent (+22%)'};
+  const smS=(r.sm>=1?'+':'')+((r.sm-1)*100).toFixed(0)+'%';
+  const caseNo='AAI-'+new Date().getFullYear()+'-'+String(Math.floor(Math.random()*9000)+1000);
+
+  document.getElementById('pv-case').textContent='CASE NO. '+caseNo;
+  document.getElementById('pv-date').textContent='DATE: '+new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'}).toUpperCase();
+  document.getElementById('pv-name').textContent=fullN;
+  document.getElementById('pv-sub').textContent=(r.isPay?'Obligor (Payer)':'Obligee (Recipient)')+' · '+sn+' Courts · '+r.yrs+'-year marriage';
+  document.getElementById('pv-vlbl').textContent=r.isPay?'ESTIMATED MONTHLY OBLIGATION':'ESTIMATED MONTHLY ENTITLEMENT';
+  document.getElementById('pv-amt').innerHTML=fmt(r.mo)+'<span class="pdf-v-mo">/mo</span>';
+  document.getElementById('pv-dur').textContent=r.dur+'-year term · '+sn;
+  document.getElementById('pv-annual').textContent=fmt(r.annual);
+  document.getElementById('pv-dur2').textContent=r.dur+' yrs';
+  document.getElementById('pv-total').textContent=fmtK(r.total);
+
+  const rows=[
+    ['Income differential',fmt(r.diff)+'/yr','hl2'],
+    ['Marriage duration',r.yrs+' years ('+(r.br*100).toFixed(0)+'% base rate)',''],
+    ['Standard of living',livL[r.liv],''],
+    ['Career sacrifice',sacL[r.sac],r.sac!=='none'?'hl':''],
+    ['Fault grounds',fltL[r.flt],r.flt!=='none'?'hl':''],
+    ['Health / disability',hlthL[r.hlth],r.hlth!=='none'?'hl2':''],
+    ['Recipient employability',empL[r.emp],''],
+    ['Dependent children',r.kids===0?'None':r.kids+' child(ren) (+'+r.kids*5+'%)',''],
+    ['State modifier ('+r.state+')',smS+' — '+sn,r.sm>1?'hl':''],
+  ];
+  document.getElementById('pv-tbl').innerHTML=rows.map(([l,v,c])=>`<tr class="${c}"><td>${l}</td><td>${v}</td></tr>`).join('');
+
+  const qPool=r.role==='M'?SQ:r.role==='F'?MQ:NQ;
+  const q=rnd(qPool);
+  const qc=r.role==='M'?'sad':r.role==='F'?'motiv':'neut';
+  document.getElementById('pv-qt').className='pdf-qt '+qc;
+  document.getElementById('pv-qs').textContent=inj(q.s,fullN);
+  document.getElementById('pv-qn').textContent='A personal note for '+fn;
+  document.getElementById('pv-qtxt').textContent='"'+inj(q.t,fn)+'"';
+  document.getElementById('pv-disc').textContent='Based on the Uniform Marriage and Divorce Act (UMDA) and state-specific alimony statutes. Judicial factors applied: income differential, marriage duration, standard of living, career sacrifice, fault grounds, health/disability, employability, and dependent children. Actual awards vary by judge and jurisdiction. This document is not legal advice. Consult a licensed family law attorney in '+sn+' for case-specific guidance. Generated by AlimonyAI, built by Jaswanth K L.';
+  document.getElementById('pv-fb').textContent='BUILT BY JASWANTH K L · REPORT FOR '+fullN.toUpperCase();
+  go('s-pdf');
+}
+
+// ===== PDF DOWNLOAD =====
+function dlPDF() {
+  const sheet=document.getElementById('pdf-sheet');
+  if(!sheet||typeof html2canvas==='undefined'){ alert('PDF library loading, please retry.'); return; }
+  const btn=document.getElementById('dl-btn');
+  if(btn){ btn.textContent='⏳ Generating...'; btn.disabled=true; }
+  html2canvas(sheet,{scale:2,useCORS:true,backgroundColor:'#ffffff',logging:false}).then(canvas=>{
+    const {jsPDF}=window.jspdf;
+    const doc=new jsPDF({unit:'mm',format:'a4'});
+    const imgData=canvas.toDataURL('image/png');
+    const pgW=doc.internal.pageSize.getWidth();
+    const pgH=doc.internal.pageSize.getHeight();
+    const ratio=canvas.height/canvas.width;
+    const imgH=pgW*ratio;
+    if(imgH<=pgH){
+      doc.addImage(imgData,'PNG',0,0,pgW,imgH);
+    } else {
+      let srcY=0;
+      const slicePx=Math.floor(canvas.width*(pgH/pgW));
+      while(srcY<canvas.height){
+        const sl=Math.min(slicePx,canvas.height-srcY);
+        const sc=document.createElement('canvas');
+        sc.width=canvas.width; sc.height=sl;
+        sc.getContext('2d').drawImage(canvas,0,srcY,canvas.width,sl,0,0,canvas.width,sl);
+        doc.addImage(sc.toDataURL('image/png'),'PNG',0,0,pgW,pgH);
+        srcY+=sl; if(srcY<canvas.height) doc.addPage();
+      }
+    }
+    doc.save('AlimonyAI-Report-'+(uName.last||'Report')+'.pdf');
+    if(btn){ btn.textContent='⬇ Download PDF'; btn.disabled=false; }
+  }).catch(()=>{ if(btn){ btn.textContent='⬇ Download PDF'; btn.disabled=false; } alert('PDF generation failed. Please try again.'); });
+}
+
+// ===== SHARE =====
+function shareLinkedIn(){
+  const msg=encodeURIComponent('I just used the AI Alimony Calculator by Jaswanth K L and learned things I cannot unlearn. Try it — brutally accurate and weirdly fun.');
+  window.open('https://www.linkedin.com/sharing/share-offsite/?url='+encodeURIComponent(window.location.href)+'&summary='+msg,'_blank');
+}
+function copyLink(){
+  navigator.clipboard.writeText(window.location.href)
+    .then(()=>alert('Link copied! Share it with anyone who needs to do the math.'))
+    .catch(()=>prompt('Copy this link:',window.location.href));
+}
+</script>
+</body>
+</html>
